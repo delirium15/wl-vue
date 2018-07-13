@@ -6,7 +6,7 @@
                 <div class="cat-list" >
                     <div class="kitten-item" v-for="pet in availableKittens">
                         <div class="kitten-box" data-lightbox="image-1" data-title="">
-                            <img :src="pet.imgs[0]" class="img-responsive" :alt="pet.name">
+                            <img :src="pet.mainImg" class="img-responsive" :alt="pet.name">
                             <div class="kitten-box-caption">
                                 <div class="kitten-box-caption-content">
                                     <div class="kitten-name text-faded">
@@ -16,12 +16,15 @@
                                         {{ pet.gender | genderToText }}
                                     </div>
                                 </div>
-                                <button class="btn-dark" @click="selectCat(pet.id)">Reserve</button>
+                                <button class="btn-dark"
+                                        @click="selectCat(pet.id)"
+                                >Reserve</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- PETS MODAL -->
                 <transition name="modal">
                     <div class="modal customfade show bs-example-modal-lg" v-if="modalVisibility" tabindex="-1" role="dialog">
                         <div class="modal-dialog modal-lg" role="document">
@@ -41,7 +44,7 @@
                                         <div class="row photoList">
                                             <div class="col-xs-6 fatherDetails">
                                                 <a class="kitten-box fatherImg">
-                                                    <img :src="currentPetFather.imgs[0]"
+                                                    <img :src="currentPetFather.mainImg"
                                                          :alt="currentPetFather.name"
                                                          class="img-responsive"
                                                          @click="selectCat(currentPetFather.id)"
@@ -51,7 +54,7 @@
                                             </div>
                                             <div class="col-xs-6 motherDetails">
                                                 <a class="kitten-box motherImg">
-                                                    <img :src="currentPetMother.imgs[0]"
+                                                    <img :src="currentPetMother.mainImg"
                                                          :alt="currentPetMother.name"
                                                          class="img-responsive"
                                                          @click="selectCat(currentPetMother.id)"
@@ -66,17 +69,17 @@
 
                                     <div class="pet-details" v-if="petDetailsVisibility">
                                         <div class="kitten-box kittyImg">
-                                            <img :src="currentPetMainImg"
+                                            <img :src="currentPet.mainImg"
                                                  :alt="currentPet.name"
                                                  class="img-responsive"
                                             />
                                         </div>
                                         <div class="pet-info">
                                             <h2><span class="catName">{{ currentPet.name }}</span></h2>
-                                            <p class="catGender">Пол: {{ currentPet.gender | genderToText }}</p>
-                                            <p class="catBirthdate">Дата рождения: {{ currentPet.birthdate | birthdateToDate }}</p>
-                                            <p class="catColor">Окрас: {{ currentPetColor.name }} ({{ currentPetColor.description }})</p>
-                                            <p v-if="currentPetHasTitles">Титулы: {{ currentPetTitles.abbr }} ({{ currentPetTitles.description }})</p>
+                                            <p class="catGender">Gender: {{ currentPet.gender | genderToText }}</p>
+                                            <p class="catBirthdate">Birthdate: {{ currentPet.birthdate | birthdateToDate }}</p>
+                                            <p class="catColor">Color: {{ currentPetColor.name }} ({{ currentPetColor.description }})</p>
+                                            <p v-if="currentPetHasTitles">Titles: {{ currentPetTitles.abbr }} ({{ currentPetTitles.description }})</p>
                                         </div>
                                         <div class="photoList">
                                             <div class="kitten-box" v-for="photo in currentPet.imgs">
@@ -90,10 +93,30 @@
                                         </div>
                                     </div>
 
-                                    <div class="petChildren" v-if="petChildrenVisibility">
+                                    <!-- Pet litters -->
+                                    <div class="petChildren" v-if="currentPetHasLitters">
+                                        <h2 class="text-center">Children of that pet</h2>
+                                        <div class="litter-item" v-for="litter in currentPetLitters">
+                                            <h3 class="text-center">Litter: {{ litter.charcode }}</h3>
+                                            <p class="text-center">Birthdate: {{ litter.birthdate | birthdateToDate }}</p>
 
+                                            <div class="photoList">
+                                                <div v-for="p in getPetsInLitter(litter.id)">
+                                                    <h3 class="text-center">{{p.name}}</h3>
+                                                    <div class="kitten-box kittyImg">
+                                                        <img :src="p.mainImg"
+                                                             :alt="currentPet.name"
+                                                             class="img-responsive"
+                                                             @click="selectCat(p.id)"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
                                     </div>
 
+                                    <!-- Loading.. img -->
                                     <img src="/src/imgs/loader_dark.svg"
                                          alt="Loading..."
                                          class="loader-img"
@@ -106,13 +129,18 @@
                                             type="button"
                                             @click="modalVisibility = false"
                                             >Close</button>
-                                    <button class="btn-dark reserveKittenBtn" data-kittenid="">Reserve</button>
+                                    <button class="btn-dark reserveKittenBtn">Reserve</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </transition>
 
+                <!-- FEEDBACK MODAL -->
+
+
+
+                <!-- MODAL BACKDROP -->
                 <transition name="customfade">
                     <div class="modal-backdrop show" v-if="modalVisibility"></div>
                 </transition>
@@ -129,7 +157,6 @@
                 selectedCatId: null,
                 pets: [],
                 petDetailsVisibility: false,
-                petChildrenVisibility: false,
                 modalVisibility: false,
             };
         },
@@ -138,9 +165,11 @@
                 this.selectedCatId = catId;
                 this.modalVisibility = true;
                 this.petDetailsVisibility = true;
-
-                    console.log(this.currentPet);
-
+            },
+            getPetsInLitter(litterId){
+                return this.pets.filter(pet => {
+                    return pet.litter_id == litterId;
+                });
             }
         },
         computed: {
@@ -158,9 +187,6 @@
                 return this.colors.filter(color => {
                     return color.id == this.currentPet.color_id;
                 })[0]
-            },
-            currentPetMainImg(){
-                return this.currentPet.imgs.shift();
             },
             currentPetHasTitles(){
                 return this.pets.filter(pet => {
@@ -196,13 +222,13 @@
                     return pet.id == this.currentPetLitter.mother_id;
                 })[0];
             },
-            currentPetHasChildren(){
-
+            currentPetLitters(){
+                return this.litters.filter(litter => {
+                    return litter.mother_id == this.currentPet.id || litter.father_id == this.currentPet.id;
+                });
             },
-            currentPetChildren(){
-                return this.pets.filter(pet => {
-                    return pet.status_id == 1 && pet.published == 1
-                })
+            currentPetHasLitters(){
+                return this.currentPetLitters.length > 0;
             },
 
         },
@@ -222,6 +248,11 @@
         },
         created() {
             const pet = (id, name, gender, birthdate, title_id, color_id, status_id, litter_id, imgs, published) => ({id, name, gender, birthdate, title_id, color_id, status_id, litter_id, imgs, published})
+            const title = (id, abbr, description) => ({id, abbr, description});
+            const color = (id, name, description) => ({id, name, description});
+            const status = (id, title) => ({id, title});
+            const litter = (id, charcode, birthdate, father_id, mother_id, published) => ({id, charcode, birthdate, father_id, mother_id, published});
+
             this.pets = [
                 pet("1", "Valkyrie",        "f", "1390161600", "4", "2", "4",   null,	["/src/imgs/cats/Valkyrie/valkyrie.jpg","/src/imgs/cats/Valkyrie/valkyrie01.jpg","/src/imgs/cats/Valkyrie/valkyrie02.jpg","/src/imgs/cats/Valkyrie/valkyrie03.jpg","/src/imgs/cats/Valkyrie/valkyrie04.jpg","/src/imgs/cats/Valkyrie/valkyrie05.jpg","/src/imgs/cats/Valkyrie/valkyrie06.jpg","/src/imgs/cats/Valkyrie/valkyrie07.jpg","/src/imgs/cats/Valkyrie/valkyrie08.jpg"], "1"),
                 pet("2", "Harty",           "m", "1399752000", "4", "2", "4",   null,	["/src/imgs/cats/Harty/harty.jpg","/src/imgs/cats/Harty/harty01.jpg","/src/imgs/cats/Harty/harty02.jpg"], "1"),
@@ -234,10 +265,9 @@
                 pet("9", "Boudica",         "f", "1523566800", "1", "2", "1",   "2",    ["/src/imgs/cats/Boudica/boudica.jpg","/src/imgs/cats/Boudica/boudica10.jpg","/src/imgs/cats/Boudica/boudica09.jpg","/src/imgs/cats/Boudica/boudica11.jpg","/src/imgs/cats/Boudica/boudica07.jpg","/src/imgs/cats/Boudica/boudica06.jpg","/src/imgs/cats/Boudica/boudica08.jpg","/src/imgs/cats/Boudica/boudica01.jpg","/src/imgs/cats/Boudica/boudica02.jpg","/src/imgs/cats/Boudica/boudica03.jpg","/src/imgs/cats/Boudica/boudica04.jpg","/src/imgs/cats/Boudica/boudica05.jpg"], "1")
             ];
 
-            const title = (id, abbr, description) => ({id, abbr, description});
-            const color = (id, name, description) => ({id, name, description});
-            const status = (id, title) => ({id, title});
-            const litter = (id, charcode, birthdate, father_id, mother_id, published) => ({id, charcode, birthdate, father_id, mother_id, published});
+            this.pets.forEach(function(item, i, arr) {
+                item.mainImg = item.imgs.shift();
+            });
 
             this.titles = [
                 title("1", "", "Нет титулов"),
