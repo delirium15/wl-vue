@@ -83,8 +83,9 @@
                                         </div>
                                         <div class="photoList">
                                             <div class="kitten-box" v-for="photo in currentPet.imgs">
-                                                <a href ="" data-fancybox="">
+                                                <a data-fancybox="">
                                                     <img class="img-responsive"
+                                                         :href="photo"
                                                          :src="photo"
                                                          :alt="currentPet.name"
                                                     >
@@ -135,8 +136,7 @@
                         </div>
                     </div>
                 </transition>
-
-                <!-- FEEDBACK MODAL -->
+                <!-- MODAL -->
 
 
 
@@ -348,7 +348,7 @@
 
     .photoList {
         display: flex;
-        margin: 40px auto 20px;
+        margin: 0px auto;
         flex-wrap: wrap;
     }
 
@@ -484,6 +484,11 @@
         transform: scale(1.5);
     }
 
+    .fatherDetails,
+    .motherDetails {
+        padding: 0px;
+    }
+
     /* ==========================================================================
     Modals
     ========================================================================== */
@@ -518,21 +523,12 @@
     .modal-header .close {
         font-size: 36px;
         font-weight: 400;
-        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zd…w9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-        background-image: -webkit-gradient(linear, left top, 225deg, color-stop(0%, #F68606), color-stop(100%, #C12A04));
-        background-image: -moz-linear-gradient(225deg, #F68606 0%, #C12A04 100%);
-        background-image: -webkit-linear-gradient(225deg, #F68606 0%, #C12A04 100%);
-        background-image: -o-linear-gradient(225deg, #F68606 0%, #C12A04 100%);
-        background-image: -ms-linear-gradient(225deg, #F68606 0%, #C12A04 100%);
-        background-image: linear-gradient(225deg, #F68606 0%, #C12A04 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
         opacity: .8;
         text-shadow: none;
     }
 
     .modal-body {
-        padding: 20px 30px;
+        padding: 10px 10px;
     }
 
     .modal-footer {
