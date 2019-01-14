@@ -1,6 +1,6 @@
 # vue-cli
 
-> A Vue.js project
+> Wild Loveliness app. Presents pets available for reserving and buying.
 
 ## Build Setup
 
